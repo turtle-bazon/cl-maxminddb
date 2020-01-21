@@ -3,7 +3,7 @@
 (defsystem :cl-maxminddb
   :name "cl-maxminddb"
   :author "Azamat S. Kalimoulline <turtle@bazon.ru>"
-  :licence "Lessor Lisp General Public License"
+  :licence "GNU Lesser General Public License, v3"
   :version "0.0.1.0"
   :description "CL MaxMind DB"
   :depends-on (babel
