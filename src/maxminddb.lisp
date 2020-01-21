@@ -304,7 +304,3 @@
                       ((4) (binary-32 ipa-value))
                       ((6) (binary-128 ipa-value)))))
       (find-ip-record mmdb ip-bits))))
-
-(defun test ()
-  (with-mmdb (mmdbmmdb "/var/lib/GeoIP/GeoLite2-City.mmdb")
-    (query-database mmdbmmdb "85.26.232.196")))
