@@ -8,7 +8,7 @@ CL-MAXMINDDB is [MaxMind DB](https://maxmind.github.io/MaxMind-DB/) files reader
 
 ```common-lisp
 > (with-mmdb (mmdb "/var/lib/GeoIP/GeoLite2-City.mmdb")
-  (mmdb-query mmdb "8.8.8.8"))
+    (mmdb-query mmdb "8.8.8.8"))
 
 (("continent" ("code" . "NA") ("geoname_id" . 6255149)
   ("names" ("de" . "Nordamerika") ("en" . "North America")
