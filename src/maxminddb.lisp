@@ -293,7 +293,7 @@
 (defun binary-32 (number)
   (binary-list number 32))
 
-(defun query-database (mmdb ip-string)
+(defun mmdb-query (mmdb ip-string)
   (bind (((:structure MaxMindDatabase- metadata) mmdb)
          ((:structure MaxMindDatabaseMetadata- ip-version) metadata)
          ((ipa-version . ipa-value) (parse-ip ip-string)))

@@ -10,4 +10,6 @@
    #:iterate
    #:metabang-bind
    #:mmap)
-  (:export))
+  (:export
+   #:with-mmdb
+   #:mmdb-query))
