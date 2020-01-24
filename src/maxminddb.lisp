@@ -223,7 +223,7 @@
     (iter (for offset from (- size 1) downto (- size 1 (* 128 1024)))
           (when (metadata-marker-p mmdb offset)
             (return (+ offset (length *metadata-marker*))))
-          (finally (error "maxmind-database metadata not found")))))
+          (finally (error "MaxmindDatabase metadata not found")))))
 
 (defun read-metadata (mmdb offset)
   (bind ((metadata-map (mread-data mmdb offset))
@@ -303,4 +303,4 @@
     (bind ((ip-bits (ecase ip-version
                       ((4) (binary-32 ipa-value))
                       ((6) (binary-128 ipa-value)))))
-      (find-ip-record mmdb ip-bits))))
+          (find-ip-record mmdb ip-bits))))
