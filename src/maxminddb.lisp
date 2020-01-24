@@ -7,7 +7,7 @@
                #(#xab #xcd #xef)
                (map 'vector #'char-code "MaxMind.com")))
 
-(defstruct MaxMindDatabaseMetadata
+(defstruct maxmind-database-metadata
   (node-count 0 :read-only t :type fixnum)
   (record-size 0 :read-only t :type fixnum)
   (ip-version 0 :read-only t :type fixnum)
@@ -19,18 +19,18 @@
   (description nil :read-only t :type list)
   (search-tree-size 0 :read-only t :type fixnum))
 
-(defstruct MaxMindDatabase
+(defstruct maxmind-database
   (ptr nil :read-only t)
   (filename nil :read-only t)
   (size 0 :read-only t)
   (metadata nil))
 
 (defun mread-raw-uchar (mmdb offset)
-  (bind (((:structure MaxMindDatabase- ptr) mmdb))
+  (bind (((:structure maxmind-database- ptr) mmdb))
     (mem-ref ptr :uchar offset)))
 
 (defun mread-raw-unsigned (mmdb offset length)
-  (bind (((:structure MaxMindDatabase- ptr) mmdb))
+  (bind (((:structure maxmind-database- ptr) mmdb))
     (iter (for i from offset below (+ offset length))
           (for byte-index from  (- length 1) downto 0)
           (for byte = (mem-ref ptr :uchar i))
@@ -71,8 +71,8 @@
                   (mread-special-generic-length mmdb offset length0))))))
 
 (defun mread-pointer (mmdb offset length)
-  (bind (((:structure MaxMindDatabase- metadata) mmdb)
-         ((:structure MaxMindDatabaseMetadata- search-tree-size) metadata)
+  (bind (((:structure maxmind-database- metadata) mmdb)
+         ((:structure maxmind-database-metadata- search-tree-size) metadata)
          (control-byte (mread-raw-uchar mmdb offset))
          (length0 (logand control-byte #b11111))
          (size (ash length0 -3))
@@ -87,7 +87,7 @@
             (+ offset length))))
 
 (defun mread-bytes (mmdb offset length)
-  (bind (((:structure MaxMindDatabase- ptr) mmdb)
+  (bind (((:structure maxmind-database- ptr) mmdb)
          (utf8-bytes (make-array length :element-type '(unsigned-byte 8)))
          (next-offset (+ offset length)))
     (iter (for i from offset below next-offset)
@@ -190,8 +190,8 @@
       ((15) (mread-float mmdb data-start length)))))
 
 (defun mread-node (mmdb node-number bit)
-  (bind (((:structure MaxMindDatabase- metadata) mmdb)
-         ((:structure MaxMindDatabaseMetadata- record-size) metadata)
+  (bind (((:structure maxmind-database- metadata) mmdb)
+         ((:structure maxmind-database-metadata- record-size) metadata)
          (node-size-in-bytes (/ (* record-size 2) 8))
          (node-offset (* node-size-in-bytes node-number))
          (basic-record-size (floor record-size 8)))
@@ -209,7 +209,7 @@
           (+ (ash high shift-value) basic-value)))))
 
 (defun metadata-marker-p (mmdb offset)
-  (bind (((:structure MaxMindDatabase- ptr size) mmdb))
+  (bind (((:structure maxmind-database- ptr size) mmdb))
     (iter (for i from offset below size)
           (for mi from 0 below (length *metadata-marker*))
           (for sample-byte = (svref *metadata-marker* mi))
@@ -219,11 +219,11 @@
           (finally (return t)))))
 
 (defun find-metadata-start (mmdb)
-  (bind (((:structure MaxMindDatabase- size) mmdb))
+  (bind (((:structure maxmind-database- size) mmdb))
     (iter (for offset from (- size 1) downto (- size 1 (* 128 1024)))
           (when (metadata-marker-p mmdb offset)
             (return (+ offset (length *metadata-marker*))))
-          (finally (error "MaxMindDatabase metadata not found")))))
+          (finally (error "maxmind-database metadata not found")))))
 
 (defun read-metadata (mmdb offset)
   (bind ((metadata-map (mread-data mmdb offset))
@@ -246,7 +246,7 @@
          (record-size
           (cdr (assoc "record_size" metadata-map :test #'equal)))
          (search-tree-size (* node-count (/ (* record-size 2) 8))))
-    (make-maxminddatabasemetadata
+    (make-maxmind-database-metadata
      :binary-format-major-version binary-format-major-version
      :binary-format-minor-version binary-format-minor-version
      :build-epoch build-epoch
@@ -259,8 +259,8 @@
      :search-tree-size search-tree-size)))
 
 (defun find-ip-record (mmdb ip-bits)
-  (bind (((:structure MaxMindDatabase- metadata) mmdb)
-         ((:structure MaxMindDatabaseMetadata- node-count search-tree-size) metadata)
+  (bind (((:structure maxmind-database- metadata) mmdb)
+         ((:structure maxmind-database-metadata- node-count search-tree-size) metadata)
          (record-value (iter (with current-node = 0)
                              (for ip-bit in ip-bits)
                              (for next-node = (mread-node mmdb current-node ip-bit))
@@ -276,9 +276,9 @@
 
 (defmacro with-mmdb ((mmdb file) &body body)
   `(with-mmap (ptr fd size ,file)
-     (bind ((,mmdb (make-maxminddatabase :ptr ptr :filename ,file :size size))
+     (bind ((,mmdb (make-maxmind-database :ptr ptr :filename ,file :size size))
             (metadata (read-metadata ,mmdb (find-metadata-start ,mmdb))))
-       (setf (MaxMindDatabase-metadata ,mmdb) metadata)
+       (setf (maxmind-database-metadata ,mmdb) metadata)
        ,@body)))
 
 (defun binary-list (number num-of-bits)
@@ -294,8 +294,8 @@
   (binary-list number 32))
 
 (defun mmdb-query (mmdb ip-string)
-  (bind (((:structure MaxMindDatabase- metadata) mmdb)
-         ((:structure MaxMindDatabaseMetadata- ip-version) metadata)
+  (bind (((:structure maxmind-database- metadata) mmdb)
+         ((:structure maxmind-database-metadata- ip-version) metadata)
          ((ipa-version . ipa-value) (parse-ip ip-string)))
     (when (and (= ip-version 4)
                (= ipa-version 6))
