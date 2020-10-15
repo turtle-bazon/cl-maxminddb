@@ -308,3 +308,8 @@
                       ((4) (binary-32 ipa-value))
                       ((6) (binary-128 ipa-value)))))
           (find-ip-record mmdb ip-bits))))
+
+(defun get-in (ip-record &rest path)
+  (iter (for key in path)
+        (for record initially ip-record then (map-value key record))
+        (finally (return record))))
