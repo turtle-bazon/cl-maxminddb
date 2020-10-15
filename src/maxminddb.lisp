@@ -306,8 +306,11 @@
       (error "Can't query ipv6 address in ipv4 database"))
     (bind ((ip-bits (ecase ip-version
                       ((4) (binary-32 ipa-value))
-                      ((6) (binary-128 ipa-value)))))
-          (find-ip-record mmdb ip-bits))))
+                      ((6) (binary-128 ipa-value))))
+           (ip-record (find-ip-record mmdb ip-bits)))
+      (unless ip-record
+        (error "The address ~a is not in the database." ip-string))
+      ip-record)))
 
 (defun get-in (ip-record &rest path)
   (iter (for key in path)
