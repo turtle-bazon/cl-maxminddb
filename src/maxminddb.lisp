@@ -130,8 +130,9 @@
 
 (defun mread-mapentry (mmdb offset)
   (bind (((:values key value-offset) (mread-data mmdb offset))
-         ((:values value next-offset) (mread-data mmdb value-offset)))
-    (values (cons key value) next-offset)))
+         ((:values value next-offset) (mread-data mmdb value-offset))
+         (key-kw (intern (string-upcase (substitute #\- #\_ key)) "KEYWORD")))
+    (values (cons key-kw value) next-offset)))
 
 (defun mread-map (mmdb offset length)
   (iter (with next-offset = offset)
@@ -225,26 +226,29 @@
             (return (+ offset (length *metadata-marker*))))
           (finally (error "MaxmindDatabase metadata not found")))))
 
+(defun map-value (key map)
+  (cdr (assoc key map)))
+
 (defun read-metadata (mmdb offset)
   (bind ((metadata-map (mread-data mmdb offset))
          (binary-format-major-version
-          (cdr (assoc "binary_format_major_version" metadata-map :test #'equal)))
+          (map-value :binary-format-major-version metadata-map))
          (binary-format-minor-version
-          (cdr (assoc "binary_format_minor_version" metadata-map :test #'equal)))
+          (map-value :binary-format-minor-version metadata-map))
          (build-epoch
-          (cdr (assoc "build_epoch" metadata-map :test #'equal)))
+          (map-value :build-epoch metadata-map))
          (database-type
-          (cdr (assoc "database_type" metadata-map :test #'equal)))
+          (map-value :database-type metadata-map))
          (description
-          (cdr (assoc "description" metadata-map :test #'equal)))
+          (map-value :description metadata-map))
          (ip-version
-          (cdr (assoc "ip_version" metadata-map :test #'equal)))
+          (map-value :ip-version metadata-map))
          (languages
-          (cdr (assoc "languages" metadata-map :test #'equal)))
+          (map-value :languages metadata-map))
          (node-count
-          (cdr (assoc "node_count" metadata-map :test #'equal)))
+          (map-value :node-count metadata-map))
          (record-size
-          (cdr (assoc "record_size" metadata-map :test #'equal)))
+          (map-value :record-size metadata-map))
          (search-tree-size (* node-count (/ (* record-size 2) 8))))
     (make-maxmind-database-metadata
      :binary-format-major-version binary-format-major-version
