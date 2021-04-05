@@ -12,5 +12,6 @@
    #:mmap)
   (:export
    #:with-mmdb
+   #:make-mmdb
    #:mmdb-query
    #:get-in))
