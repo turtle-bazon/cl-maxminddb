@@ -278,12 +278,20 @@
              (data-map (mread-data mmdb data-offset)))
         data-map))))
 
+(defun mmap->mmdb (ptr file size)
+  (bind ((db (make-maxmind-database :ptr ptr :filename file :size size))
+         (metadata (read-metadata db (find-metadata-start db))))
+    (setf (maxmind-database-metadata db) metadata)
+    db))
+
 (defmacro with-mmdb ((mmdb file) &body body)
   `(with-mmap (ptr fd size ,file)
-     (bind ((,mmdb (make-maxmind-database :ptr ptr :filename ,file :size size))
-            (metadata (read-metadata ,mmdb (find-metadata-start ,mmdb))))
-       (setf (maxmind-database-metadata ,mmdb) metadata)
+     (bind ((,mmdb (mmap->mmdb ptr ,file size)))
        ,@body)))
+
+(defun make-mmdb (file)
+  (multiple-value-bind (ptr fd size) (mmap file)
+    (mmap->mmdb ptr file size)))
 
 (defun binary-list (number num-of-bits)
   (iter (initially (setq q number))

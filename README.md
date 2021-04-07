@@ -26,6 +26,17 @@ CL-MAXMINDDB is [MaxMind DB](https://maxmind.github.io/MaxMind-DB/) files reader
    (:RU . "США") (:ZH-CN . "美国"))))
 ```
 
+That sets up a new database every time, which is fine for occasional lookups. If you need to do many lookups, the following approach is faster and produces the same result as above:
+
+```common-lisp
+(defparameter *city-db* (make-mmdb "/var/lib/GeoIP/GeoLite2-City.mmdb"))
+(mmdb-query *city-db* "8.8.8.8")
+```
+
+The first approach constructs a new database object, including an mmap of the Maxmind file, and unmaps it with each call. This is slower but doesn't keep the mmap in memory.
+
+The second approach mmaps the file, keeps a permanent reference to the database object, and never unmaps it. This uses more memory but makes the lookups much faster.
+
 ## License
 
 Licensed under the LGPL v3
