@@ -4,7 +4,7 @@
   :name "cl-maxminddb"
   :author "Azamat S. Kalimoulline <turtle@bazon.ru>"
   :licence "GNU Lesser General Public License, v3"
-  :version "0.0.1.2"
+  :version "0.0.1.3"
   :description "CL MaxMind DB"
   :depends-on (#:babel
                #:cffi
