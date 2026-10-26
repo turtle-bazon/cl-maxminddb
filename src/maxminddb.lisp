@@ -311,6 +311,8 @@
 (defun binary-32 (number)
   (binary-list number 32))
 
+(defparameter *error-if-not-found* t)
+
 (defun mmdb-query (mmdb ip-string)
   (bind (((:structure maxmind-database- metadata) mmdb)
          ((:structure maxmind-database-metadata- ip-version) metadata)
@@ -322,11 +324,12 @@
                       ((4) (binary-32 ipa-value))
                       ((6) (binary-128 ipa-value))))
            ((:values ip-record prefix) (find-ip-record mmdb ip-bits)))
-      (unless ip-record
-        (error "The address ~a is not in the database." ip-string))
-      (values ip-record (if (and (= ip-version 6) (= ipa-version 4))
-                            (max 0 (- prefix 96))
-                            prefix)))))
+      (cond (ip-record
+             (values ip-record (if (and (= ip-version 6) (= ipa-version 4))
+                                   (max 0 (- prefix 96))
+                                   prefix)))
+            (*error-if-not-found*
+             (error "The address ~a is not in the database." ip-string))))))
 
 (defun get-in (ip-record &rest path)
   (iter (for key in path)
