@@ -24,9 +24,14 @@ CL-MAXMINDDB is [MaxMind DB](https://maxmind.github.io/MaxMind-DB/) files reader
   (:NAMES (:DE . "USA") (:EN . "United States") (:ES . "Estados Unidos")
    (:FR . "États-Unis") (:JA . "アメリカ合衆国") (:PT-BR . "Estados Unidos")
    (:RU . "США") (:ZH-CN . "美国"))))
+32
 ```
 
-That sets up a new database every time, which is fine for occasional lookups. If you need to do many lookups, the following approach is faster and produces the same result as above:
+The second return value, PREFIX, is the number of bits in the IP address which were used to find the record in the database. All IP addresses in the CIDR block defined by IP and PREFIX share the same database entry.
+
+When *ERROR-IF-NOT-FOUND* is true (the default), MMDB-QUERY will raise an error when no entry is found for IP in the database. When *ERROR-IF-NOT-FOUND* is nil, MMDB-QUERY will return nil in this case.
+
+WITH-MMDB sets up a new database every time, which is fine for occasional lookups. If you need to do many lookups, the following approach is faster and produces the same result as above:
 
 ```common-lisp
 (defparameter *city-db* (make-mmdb "/var/lib/GeoIP/GeoLite2-City.mmdb"))

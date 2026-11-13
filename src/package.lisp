@@ -13,5 +13,6 @@
   (:export
    #:with-mmdb
    #:make-mmdb
+   #:*error-if-not-found*
    #:mmdb-query
    #:get-in))

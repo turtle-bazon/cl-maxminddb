@@ -263,19 +263,20 @@
 (defun find-ip-record (mmdb ip-bits)
   (bind (((:structure maxmind-database- metadata data-offset) mmdb)
          ((:structure maxmind-database-metadata- node-count) metadata)
-         (record-value (iter (with current-node = 0)
+         ((:values record-value prefix) (iter (with current-node = 0)
                              (for ip-bit in ip-bits)
+                             (for prefix from 1)
                              (for next-node = (mread-node mmdb current-node ip-bit))
                              (setf current-node next-node)
                              (when (= current-node node-count)
                                (return nil))
                              (when (> current-node node-count)
-                               (return current-node)))))
-    
+                               (return (values current-node prefix))))))
+
     (when record-value
       (bind ((record-offset (+ data-offset (- record-value node-count 16)))
              (data-map (mread-data mmdb record-offset)))
-        data-map))))
+        (values data-map prefix)))))
 
 (defun mmap->mmdb (ptr file size)
   (bind ((mmdb (make-maxmind-database :ptr ptr :filename file :size size))
@@ -310,6 +311,8 @@
 (defun binary-32 (number)
   (binary-list number 32))
 
+(defparameter *error-if-not-found* t)
+
 (defun mmdb-query (mmdb ip-string)
   (bind (((:structure maxmind-database- metadata) mmdb)
          ((:structure maxmind-database-metadata- ip-version) metadata)
@@ -320,10 +323,13 @@
     (bind ((ip-bits (ecase ip-version
                       ((4) (binary-32 ipa-value))
                       ((6) (binary-128 ipa-value))))
-           (ip-record (find-ip-record mmdb ip-bits)))
-      (unless ip-record
-        (error "The address ~a is not in the database." ip-string))
-      ip-record)))
+           ((:values ip-record prefix) (find-ip-record mmdb ip-bits)))
+      (cond (ip-record
+             (values ip-record (if (and (= ip-version 6) (= ipa-version 4))
+                                   (max 0 (- prefix 96))
+                                   prefix)))
+            (*error-if-not-found*
+             (error "The address ~a is not in the database." ip-string))))))
 
 (defun get-in (ip-record &rest path)
   (iter (for key in path)
